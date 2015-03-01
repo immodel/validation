@@ -1,0 +1,28 @@
+{
+  "name": "validation",
+  "version": "0.1.0",
+  "description": "Add basic validation support to immodel",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/immodel/validation"
+  },
+  "keywords": [
+    "immmodel",
+    "model",
+    "validation",
+    "model"
+  ],
+  "author": "ashaffer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/immodel/validation/issues"
+  },
+  "homepage": "https://github.com/immodel/validation",
+  "dependencies": {
+    "ware": "^1.2.0"
+  }
+}
