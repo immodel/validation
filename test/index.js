@@ -1,5 +1,6 @@
 var assert = require('assert');
-var model = require('immodel').bootstrap({validation: require('..')});
+var model = require('immodel')
+  .use(require('immodel-base'), {validation: require('..')});
 
 describe('validation', function() {
   it('should validate nested objects', function(done) {

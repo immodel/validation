@@ -22,7 +22,8 @@
     "ware": "^1.2.0"
   },
   "devDependencies": {
-    "mocha": "^2.1.0",
-    "immodel": "git://github.com/immodel/immodel"
+    "immodel": "git://github.com/immodel/immodel",
+    "immodel-base": "git://github.com/immodel/base",
+    "mocha": "^2.1.0"
   }
 }
