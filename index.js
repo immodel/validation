@@ -89,12 +89,10 @@ module.exports = function(model) {
     return this;
   };
   
-  model.on('init', function(evt) {
-    evt.doc.validate = function(cb) {
-      this.model.validate(this, cb);
-      return this;      
-    };
-  });
+  
+  model.prototype.validate = function(cb) {
+    return this.model.validate(this, cb);
+  };
   
   return model;
 };
