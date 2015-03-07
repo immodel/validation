@@ -1,5 +1,5 @@
-var expect = require('chai').expect;
-var model = require('immodel').bootstrap({validation: require('../')});
+var assert = require('assert');
+var model = require('immodel').bootstrap({validation: require('..')});
 
 describe('validation', function() {
   it('should validate nested objects', function(done) {
@@ -9,11 +9,11 @@ describe('validation', function() {
         .attr('givenName', 'string'));
     
     var doc = new User();
-    expect(doc.get('name.familyName')).to.equal('');
-    expect(doc.get('name.givenName')).to.equal('');
+    assert(doc.get('name.familyName') === '');
+    assert(doc.get('name.givenName') === '');
 
     doc.validate(function(err) {
-      expect(err).not.to.be.null;
+      assert(err !== null);
       done();
     });
   });
@@ -34,19 +34,20 @@ describe('validation', function() {
       
     var doc = new User();
     doc.validate(function(err) {
-      expect(err).not.to.be.null;
-      expect(err[0].key).to.equal('both');
+      assert(err !== null);
+      assert(err[0].key === 'both');
       
       doc.set('name.givenName', 'test');
       doc.validate(function(err) {
-        expect(err).to.be.null;
+        assert(err === null);
+
         doc.set('name.familyName', 'test');
         doc.set('name.givenName', null);
         doc.validate(function(err) {
-          expect(err).to.be.null;
+          assert(err === null);
           doc.set('name.familyName', 'test');
           doc.validate(function(err) {
-            expect(err).to.be.null;
+            assert(err === null);
             done();
           });
         });
