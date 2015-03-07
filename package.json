@@ -1,5 +1,5 @@
 {
-  "name": "validation",
+  "name": "immodel-validation",
   "version": "0.1.1",
   "description": "Add basic validation support to immodel",
   "main": "index.js",
