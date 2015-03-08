@@ -1,65 +1,29 @@
 var ware = require('ware');
 
-module.exports = function(model) {
-  model._validators = model._validators || [];
-    
-  model.validators = ware();
-  
-  function createPipeline(validators) {
-    var pipeline = ware();
-    validators.forEach(function(validator) {
-      var fn = validator[0];
-      var key = validator[1];
-      
-      pipeline.use(function(value, next) {
-        fn.length === 1
-          ? handle(fn(value))
-          : fn(value, handle);
-        
-        function handle(valid) {
-          setTimeout(function() {
-            if(valid === false) {
-              var err = new Error;
-              err.key = key;
-              return next(err);
-            }
-            
-            next(null, value);
-          });
-        }
-      });
-    });
-    
-    return pipeline;
-  }
-  
-  model.validator = function(fn, key) {
-    return this.use(function(model) {
-      model._validators.push([fn, key]);
-      model.validators = createPipeline(model._validators);
-
-      return model;
+module.exports = function() {   
+  this.validators = [];
+   
+  this.validator = function(fn, key) {
+    return this.use(function() {
+      this.validators.push([fn, key]);
     });
   };
   
-  model.removeValidator = function(fn, key) {
-    return this.use(function(model) {
-      model._validators = model._validators.filter(function(validator, idx) {
+  this.removeValidator = function(fn, key) {
+    return this.use(function() {
+      this.validators = this.validators.filter(function(validator, idx) {
         return ! (validator[0] === fn && validator[1] === key);
       });
-      
-      model.validators = createPipeline(model._validators);      
-      return model;
     })
   };
   
-  model.validate = function(doc, cb) {
+  this.validate = function(doc, cb) {
     var self = this;
 
     // Run our own validators first (a model may have 
     // validators on its root that validate relations
     // between elements of the model)
-    this.validators.run(doc, function(err) {
+    createPipeline(this.validators).run(doc, function(err) {
       if(err) return cb(err);
       // If this is a simple type (has no attrs)
       // then we're done
@@ -89,10 +53,37 @@ module.exports = function(model) {
     return this;
   };
   
-  
-  model.prototype.validate = function(cb) {
+  this.prototype.validate = function(cb) {
     return this.model.validate(this, cb);
   };
   
-  return model;
+  function wrapValidator(fn, key) {
+    return function(value, next) {
+      fn.length === 1
+        ? handle(fn(value))
+        : fn(value, handle);
+      
+      function handle(valid) {
+        setTimeout(function() {
+          if(valid === false) {
+            var err = new Error;
+            err.key = key;
+            return next(err);
+          }
+          
+          next(null, value);
+        });
+      }
+    };
+  }
+  
+  function createPipeline(validators) {
+    var pipeline = ware();
+    
+    validators.forEach(function(validator) {
+      pipeline.use(wrapValidator(validator[0], validator[1]));
+    });
+      
+    return pipeline;
+  }
 };
