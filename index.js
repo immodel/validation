@@ -14,40 +14,27 @@ module.exports = function() {
       this.validators = this.validators.filter(function(validator, idx) {
         return ! (validator[0] === fn && validator[1] === key);
       });
-    })
+    });
   };
 
   this.validate = function(doc, cb) {
     var self = this;
-
-    // Run our own validators first (a model may have
-    // validators on its root that validate relations
-    // between elements of the model)
-    createPipeline(this.validators).run(doc, function(err) {
+    doc.run('validating', function(err, doc) {
       if(err) return cb(err);
-      // If this is a simple type (has no attrs)
-      // then we're done
-      if(! self.complex) return cb(null);
 
-      function checkDone() {
-        if(done && n === 0) cb(errors.length ? errors : null);
-      }
+      // Run our own validators first (a model may have
+      // validators on its root that validate relations
+      // between elements of the model)
+      createPipeline(self.validators).run(doc, function(err) {
+        if(err) return cb(err, doc);
 
-      var done = false;
-      var n = 0;
-      var errors = [];
-      doc.eachAttr(function(name, type) {
-        var value = doc.get(name);
-        n++;
-        type.validate(value, function(err) {
-          n--;
-          if(err) errors.push(err);
-          checkDone();
+        doc.eachAttrAsync(function(name, type, next) {
+          type.validate(doc.get(name), next);
+        }, function(err) {
+          if(err) return cb(err, doc);
+          doc.run('validated', cb);
         });
       });
-
-      done = true;
-      checkDone();
     });
 
     return this;
@@ -58,10 +45,10 @@ module.exports = function() {
   };
 
   function wrapValidator(fn, key) {
-    return function(value, next) {
-      fn.length === 1
-        ? handle(fn(value))
-        : fn(value, handle);
+    return function(doc, next) {
+      fn.length === 0
+        ? handle(fn.call(doc))
+        : fn.call(doc, handle);
 
       function handle(valid) {
         setTimeout(function() {
@@ -71,7 +58,7 @@ module.exports = function() {
             return next(err);
           }
 
-          next(null, value);
+          next(null, doc);
         });
       }
     };
